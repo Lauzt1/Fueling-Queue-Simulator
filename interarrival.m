@@ -1,3 +1,5 @@
+% interarrival.m
+
 function interarrival_table(lambda)
     times = 0.5:0.5:3.0;  % Interarrival time steps
     n = length(times);
