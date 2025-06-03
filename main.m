@@ -7,6 +7,13 @@ clc; clear;
 % Refueling time distributions
 fuelTime;
 
+fuelRate = 60 %liters per minute
+
+%Fuels Price
+r95Price = 2.05 
+r97Price = 3.10
+diselPrice = 2.80
+
 % Interarrival time distributions
 fprintf('Interarrival Time For Non Peak Hour \n')
 interarrival(1.75);
@@ -133,12 +140,7 @@ for i = 1:numVehicles
     end
 end
 
-fprintf('\nVehicle\tInterarrival\tFuel Type\tFuel Time\n');
-fprintf('----------------------------------------------------------\n');
-for i = 1:numVehicles
-    fprintf('%d\t%12.2f\t%-15s\t%3d min\n', ...
-        i, interArrivalTimes(i), fuelTypes{i}, fuelTimes(i));
-end
+% Stimulate fuel pump
 
 
 % TODO: Implement the simulation logic here.
