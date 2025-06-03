@@ -39,7 +39,6 @@ end
 numVehicles = input('Enter number of vehicles to simulate: ');
 fprintf('>> Simulating %d vehicles.\n', numVehicles);
 
-
 %% 4) Peak Hour or Non Peak Hour
 fprintf('Select Time Of Stimulation\n');
 fprintf(' 1 : Non Peak Hour\n');
