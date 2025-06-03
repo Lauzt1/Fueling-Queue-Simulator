@@ -6,6 +6,6 @@ function r = lcg(seed, n)
     x = seed;
     for i = 1:n
         x = mod(a * x + c, m);
-        r(i) = floor((x / m) * 101);  % Scale to [0,100] and round down
+        r(i) = floor((x / m) * 100);  % Scale to [0,99] and round down
     end
 end

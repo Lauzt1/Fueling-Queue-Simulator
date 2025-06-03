@@ -8,6 +8,6 @@ function output = guv(row_num)
     % Scale to range [a, b]
     X = a + R * (b - a);
 
-    % Round up to nearest integer in [1,100]
-    output = ceil(X);
+    % Round up to nearest integer in [0,99]
+    output = ceil(X)-1;
 end
