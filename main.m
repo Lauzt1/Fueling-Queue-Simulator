@@ -30,6 +30,17 @@ end
 numVehicles = input('Enter number of vehicles to simulate: ');
 fprintf('>> Simulating %d vehicles.\n', numVehicles);
 
+% 4) Seed + preview
+seed = input('Enter RNG seed (integer): ');
+switch rngChoice
+    case 1, rngSequence = lcg(seed, numVehicles);
+    case 2, rngSequence = guv(seed, numVehicles);
+    case 3, rngSequence = expv(seed, numVehicles);
+end
+
+fprintf('\nFirst 20 generated numbers (0-99):\n');
+disp(rngSequence(1:min(20, numVehicles)));
+
 %% 4) Placeholder for Main Simulation
 fprintf('\n[Placeholder] Running main simulation with RNG type %d for %d vehicles...\n', ...
     rngChoice, numVehicles);
