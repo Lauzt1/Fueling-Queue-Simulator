@@ -20,7 +20,7 @@ function r = lcg(seed, n)
     
     for k = 1:n
         x = mod(a * x + c, m);
-        r(i) = floor((x / m) * 100);  % Scale to [0,99] and round down
+        r(k) = floor((x / m) * 100);  % Scale to [0,99] and round down
     end
     
     % Ensure output is double row vector
