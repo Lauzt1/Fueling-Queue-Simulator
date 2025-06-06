@@ -140,11 +140,63 @@ for i = 1:numVehicles
 end
 
 % Stimulate fuel pump
-
+fprintf('\n[Placeholder] Simulating fuel pump operations...\n');
 
 % TODO: Implement the simulation logic here.
 %       - Use rngChoice and numVehicles to generate inter-arrival and service times.
 %       - Display customer arrivals, departures, and events.
-%       - Show final tables of refueling times, petrol types, inter-arrival times.    
+%       - Show final tables of refueling times, petrol types, inter-arrival times.   
+
+% Initialize Simulation Variables
+arrivalTimes = cumsum(interArrivalTimes);    
+startTimes = zeros(1, numVehicles);          
+endTimes = zeros(1, numVehicles);            
+waitingTimes = zeros(1, numVehicles);        
+serviceTimes = fuelTimes;                    
+assignedLane = zeros(1, numVehicles);        
+assignedPump = zeros(1, numVehicles);        
+
+pumpEnd = zeros(1, 4);                        % Track when each pump is free
+lane1_pumps = [1, 2];                        
+lane2_pumps = [3, 4];                        
+
+% Run the simulation
+for i = 1:numVehicles
+    t_arrival = arrivalTimes(i);
+
+    lane1_next = min(pumpEnd(lane1_pumps));
+    lane2_next = min(pumpEnd(lane2_pumps));
+
+    if lane1_next <= lane2_next
+        assignedLane(i) = 1;
+        temp = pumpEnd(lane1_pumps);
+        [minimum, idx] = min(temp);
+        pump = lane1_pumps(idx);
+    else
+        assignedLane(i) = 2;
+        temp = pumpEnd(lane2_pumps);
+        [minimum, idx] = min(temp);
+        pump = lane2_pumps(idx);
+    end
+
+    assignedPump(i) = pump;
+    start_time = max(t_arrival, pumpEnd(pump));
+    end_time = start_time + serviceTimes(i);
+    startTimes(i) = start_time;
+    endTimes(i) = end_time;
+    waitingTimes(i) = start_time - t_arrival;
+    pumpEnd(pump) = end_time;
+    fuel = fuelTypes{i};
+
+    fprintf('Vehicle %2d arrived at minute %.0f and began refueling with %s at Pump Island %d.\n', ...
+        i, t_arrival, fuel, pump);
+
+    fprintf('Vehicle %2d finished refueling and departed at minute %.0f.\n', ...
+        i, end_time);
+
+end
+
+% Evaluate simulation results
+finalAverage(waitingTimes, serviceTimes);
 
 fprintf('Simulation complete. (Placeholder)\n');
