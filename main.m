@@ -196,7 +196,38 @@ for i = 1:numVehicles
 
 end
 
-% Evaluate simulation results
-finalAverage(waitingTimes, serviceTimes);
+
+
+% Convert arrays to column format
+VehicleID = (1:numVehicles)';
+Arrival = arrivalTimes';
+Start = startTimes';
+End = endTimes';
+Wait = waitingTimes';
+Service = serviceTimes';
+Lane = assignedLane';
+Pump = assignedPump';
+Fuel = fuelTypes;
+
+
+
+% Create summary table
+fprintf('\n+------------+-----------+-----------+-----------+-----------+-----------+--------+--------+-------------------+\n');
+fprintf('| Vehicle ID | Arrival   | Start     | End       | Wait      | Service   | Lane   | Pump   | Fuel              |\n');
+fprintf('+------------+-----------+-----------+-----------+-----------+-----------+--------+--------+-------------------+\n');
+
+for i = 1:numVehicles
+    fprintf('| %10d | %9.2f | %9.2f | %9.2f | %9.2f | %9.2f | %6d | %6d | %-17s|\n', ...
+        i, arrivalTimes(i), startTimes(i), endTimes(i), ...
+        waitingTimes(i), serviceTimes(i), ...
+        assignedLane(i), assignedPump(i), fuelTypes{i});
+end
+
+fprintf('+------------+-----------+-----------+-----------+-----------+-----------+--------+--------+-------------------+\n');
+
+
+% Show average wait and service times
+finalAverage(waitingTimes, serviceTimes);  % This function should be defined elsewhere
+
 
 fprintf('Simulation complete. (Placeholder)\n');
