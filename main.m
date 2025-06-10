@@ -188,11 +188,7 @@ for i = 1:numVehicles
     pumpEnd(pump) = end_time;
     fuel = fuelTypes{i};
 
-    fprintf('Vehicle %2d arrived at minute %.1f and began refueling with %s at Pump Island %d.\n', ...
-        i, t_arrival, fuel, pump);
-
-    fprintf('Vehicle %2d finished refueling and departed at minute %.1f.\n', ...
-        i, end_time);
+    
 
 end
 
@@ -211,15 +207,15 @@ Fuel = fuelTypes;
 
 
 
-
-% Display Final Summary Table Header
-disp('+------------+----------------+------------------+-------------------+-----------------------+-------------------+---------------+----------+----------------------+--------------+-----------+-------------+-----------+');
-disp('| No         | Petrol         | Quantity (L)     | Total Price (RM)  | RNG for Interarrival  | Interarrival Time | Arrival Time  | Line     | Refuel Time RNG      | Refuel Time  | Pump No.  | Begin       | End       |');
-disp('+------------+----------------+------------------+-------------------+-----------------------+-------------------+---------------+----------+----------------------+--------------+-----------+-------------+-----------+');
+% Main Table Header
+disp('+-----+----------------+---------------+-------------------+---------------------------+---------------------+----------------+--------+-------------------------+------------------+--------+----------+----------+');
+disp('| No  | Petrol         | Quantity (L)  | Total Price (RM)  | RNG Interarrival Time     | Interarrival Time   | Arrival Time   | Line   | RNG Refuel Time         | Refuel Time      | Pump   | Begin    | End      |');
+disp('+-----+----------------+---------------+-------------------+---------------------------+---------------------+----------------+--------+-------------------------+------------------+--------+----------+----------+');
 
 for i = 1:numVehicles
-    % Calculate estimated quantity and total price
-    quantity = round(serviceTimes(i) * fuelRate / 60); % Quantity based on refuel time
+    % Calculate quantity and price
+    quantity = round(serviceTimes(i) * fuelRate / 60);
+    
     if strcmp(fuelTypes{i}, 'Primax95')
         pricePerLitre = r95Price;
     elseif strcmp(fuelTypes{i}, 'Primax97')
@@ -227,17 +223,55 @@ for i = 1:numVehicles
     else
         pricePerLitre = diselPrice;
     end
+    
     totalPrice = quantity * pricePerLitre;
 
-    % Display row (replace RNG values if available)
-    fprintf('| %10d | %-14s | %16.2f | %17.2f | %21.2f | %17.2f | %13.2f | %8d | %20.2f | %12.2f | %9d | %11.2f | %9.2f |\n', ...
+    % Print aligned row
+    fprintf('| %-3d | %-14s | %13.2f | %17.2f | %25.2f | %19.2f | %14.2f | %-6d | %23.2f | %16.2f | %-6d | %8.2f | %8.2f |\n', ...
         i, fuelTypes{i}, quantity, totalPrice, ...
         0, interArrivalTimes(i), arrivalTimes(i), assignedLane(i), ...
         0, serviceTimes(i), assignedPump(i), startTimes(i), endTimes(i));
 end
+disp('+-----+----------------+---------------+-------------------+---------------------------+---------------------+----------------+--------+-------------------------+------------------+--------+----------+----------+');
+
+
+
+% Pump-wise Time Table Header
+disp('+----------------------+-------------------------------+-------------------------------+-------------------------------+-------------------------------+------------------+----------------+');
+disp('| Vehicle No.          | Pump 1                        | Pump 2                        | Pump 3                        | Pump 4                        | Waiting Time (s) | Time Spent (s) |');
+disp('|                      | Refuel Time | Begin  | End    | Refuel Time | Begin  | End    | Refuel Time | Begin  | End    | Refuel Time | Begin  | End    |                  |                |');
+disp('+----------------------+-------------+--------+--------+-------------+--------+--------+-------------+--------+--------+-------------+--------+--------+------------------+----------------+');
+
+for i = 1:numVehicles
+    p1 = '|             |        |        ';
+    p2 = '|             |        |        ';
+    p3 = '|             |        |        ';
+    p4 = '|             |        |        ';
+
+    waitingTime = startTimes(i) - arrivalTimes(i);
+    timeSpent = endTimes(i) - arrivalTimes(i);
+
+    % Assign values based on pump
+    switch assignedPump(i)
+        case 1
+            p1 = sprintf('| %11.2f | %6.2f | %6.2f ', serviceTimes(i), startTimes(i), endTimes(i));
+        case 2
+            p2 = sprintf('| %11.2f | %6.2f | %6.2f ', serviceTimes(i), startTimes(i), endTimes(i));
+        case 3
+            p3 = sprintf('| %11.2f | %6.2f | %6.2f ', serviceTimes(i), startTimes(i), endTimes(i));
+        case 4
+            p4 = sprintf('| %11.2f | %6.2f | %6.2f ', serviceTimes(i), startTimes(i), endTimes(i));
+    end
+
+    fprintf('| %20d %s%s%s%s| %16.2f | %14.2f |\n', ...
+        i, p1, p2, p3, p4, waitingTime, timeSpent);
+end
+
+
+
 
 % Bottom border
-disp('+------------+----------------+------------------+-------------------+-----------------------+-------------------+---------------+----------+----------------------+--------------+-----------+-------------+-----------+');
+disp('--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------');
 
 
 
