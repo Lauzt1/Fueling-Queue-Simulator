@@ -211,19 +211,35 @@ Fuel = fuelTypes;
 
 
 
-% Create summary table
-fprintf('\n+------------+-----------+-----------+-----------+-----------+-----------+--------+--------+-------------------+\n');
-fprintf('| Vehicle ID | Arrival   | Start     | End       | Wait      | Service   | Lane   | Pump   | Fuel              |\n');
-fprintf('+------------+-----------+-----------+-----------+-----------+-----------+--------+--------+-------------------+\n');
+
+% Display Final Summary Table Header
+disp('+------------+----------------+------------------+-------------------+-----------------------+-------------------+---------------+----------+----------------------+--------------+-----------+-------------+-----------+');
+disp('| No         | Petrol         | Quantity (L)     | Total Price (RM)  | RNG for Interarrival  | Interarrival Time | Arrival Time  | Line     | Refuel Time RNG      | Refuel Time  | Pump No.  | Begin       | End       |');
+disp('+------------+----------------+------------------+-------------------+-----------------------+-------------------+---------------+----------+----------------------+--------------+-----------+-------------+-----------+');
 
 for i = 1:numVehicles
-    fprintf('| %10d | %9.2f | %9.2f | %9.2f | %9.2f | %9.2f | %6d | %6d | %-17s|\n', ...
-        i, arrivalTimes(i), startTimes(i), endTimes(i), ...
-        waitingTimes(i), serviceTimes(i), ...
-        assignedLane(i), assignedPump(i), fuelTypes{i});
+    % Calculate estimated quantity and total price
+    quantity = round(serviceTimes(i) * fuelRate / 60); % Quantity based on refuel time
+    if strcmp(fuelTypes{i}, 'Primax95')
+        pricePerLitre = r95Price;
+    elseif strcmp(fuelTypes{i}, 'Primax97')
+        pricePerLitre = r97Price;
+    else
+        pricePerLitre = diselPrice;
+    end
+    totalPrice = quantity * pricePerLitre;
+
+    % Display row (replace RNG values if available)
+    fprintf('| %10d | %-14s | %16.2f | %17.2f | %21.2f | %17.2f | %13.2f | %8d | %20.2f | %12.2f | %9d | %11.2f | %9.2f |\n', ...
+        i, fuelTypes{i}, quantity, totalPrice, ...
+        0, interArrivalTimes(i), arrivalTimes(i), assignedLane(i), ...
+        0, serviceTimes(i), assignedPump(i), startTimes(i), endTimes(i));
 end
 
-fprintf('+------------+-----------+-----------+-----------+-----------+-----------+--------+--------+-------------------+\n');
+% Bottom border
+disp('+------------+----------------+------------------+-------------------+-----------------------+-------------------+---------------+----------+----------------------+--------------+-----------+-------------+-----------+');
+
+
 
 
 % Show average wait and service times
