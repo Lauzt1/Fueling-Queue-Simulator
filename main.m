@@ -1,5 +1,5 @@
 %======================================================================
-%  Fuel-pump queueing simulator  –  FreeMat edition
+%  Fuel-pump queueing simulator  â€“  FreeMat edition
 %======================================================================
 
 clc; clear;
@@ -181,8 +181,8 @@ for i = 1:numVehicles
     startTimes(i)   = start_time;
     endTimes(i)     = end_time;
     waitingTimes(i) = start_time - t_arrival;
-    pumpEnd(pump)   = end_time;
-    fuel            = fuelTypes{i};
+    pumpEnd(pump) = end_time;
+    fuel = fuelTypes{i};
 
     % Log arrival/begin-service event
     msg1 = sprintf('Vehicle %2d arrived at minute %.1f and began refueling with %s at Pump Island %d.', ...
@@ -212,30 +212,82 @@ fprintf('\n');
 
 %% ----------------- Summary table -------------------
 VehicleID = (1:numVehicles)';
-Arrival   = arrivalTimes';
-Start     = startTimes';
-End       = endTimes';
-Wait      = waitingTimes';
-Service   = serviceTimes';
-Lane      = assignedLane';
-Pump      = assignedPump';
-Fuel      = fuelTypes';
+Arrival = arrivalTimes';
+Start = startTimes';
+End = endTimes';
+Wait = waitingTimes';
+Service = serviceTimes';
+Lane = assignedLane';
+Pump = assignedPump';
+Fuel = fuelTypes;
 
-%% ----------------- Summary table -------------------
-fprintf('+------------+-----------+-----------+-----------+-----------+-----------+--------+--------+-------------------+---------+----------+-----------+-----------+-----------+\n');
-fprintf('| Vehicle ID | Arrival   | Start     | End       | Wait      | Service   | Lane   | Pump   | Fuel              | RandNum | RefuelT  | Begin     | Finish    | TotTime   |\n');
-fprintf('+------------+-----------+-----------+-----------+-----------+-----------+--------+--------+-------------------+---------+----------+-----------+-----------+-----------+\n');
+
+
+% Main Table Header
+disp('+-----+----------------+---------------+-------------------+---------------------------+---------------------+----------------+--------+-------------------------+------------------+--------+----------+----------+');
+disp('| No  | Petrol         | Quantity (L)  | Total Price (RM)  | RNG Interarrival Time     | Interarrival Time   | Arrival Time   | Line   | RNG Refuel Time         | Refuel Time      | Pump   | Begin    | End      |');
+disp('+-----+----------------+---------------+-------------------+---------------------------+---------------------+----------------+--------+-------------------------+------------------+--------+----------+----------+');
 
 for i = 1:numVehicles
-    fprintf('| %10d | %9.2f | %9.2f | %9.2f | %9.2f | %9.2f | %6d | %6d | %-17s | %7d | %8.2f | %9.2f | %9.2f | %9.2f |\n', ...
-        i, arrivalTimes(i), startTimes(i), endTimes(i), ...
-        waitingTimes(i), serviceTimes(i), ...
-        assignedLane(i), assignedPump(i), fuelTypes{i}, ...
-        randRefuelNums(i), serviceTimes(i), startTimes(i), ...
-        endTimes(i), endTimes(i) - arrivalTimes(i));
+    % Calculate quantity and price
+    quantity = round(serviceTimes(i) * fuelRate / 60);
+    
+    if strcmp(fuelTypes{i}, 'Primax95')
+        pricePerLitre = r95Price;
+    elseif strcmp(fuelTypes{i}, 'Primax97')
+        pricePerLitre = r97Price;
+    else
+        pricePerLitre = diselPrice;
+    end
+    
+    totalPrice = quantity * pricePerLitre;
+
+    % Print aligned row
+    fprintf('| %-3d | %-14s | %13.2f | %17.2f | %25.2f | %19.2f | %14.2f | %-6d | %23.2f | %16.2f | %-6d | %8.2f | %8.2f |\n', ...
+        i, fuelTypes{i}, quantity, totalPrice, ...
+        0, interArrivalTimes(i), arrivalTimes(i), assignedLane(i), ...
+        0, serviceTimes(i), assignedPump(i), startTimes(i), endTimes(i));
+end
+disp('+-----+----------------+---------------+-------------------+---------------------------+---------------------+----------------+--------+-------------------------+------------------+--------+----------+----------+');
+
+
+
+% Pump-wise Time Table Header
+disp('+----------------------+-------------------------------+-------------------------------+-------------------------------+-------------------------------+------------------+----------------+');
+disp('| Vehicle No.          | Pump 1                        | Pump 2                        | Pump 3                        | Pump 4                        | Waiting Time     | Time Spent     |');
+disp('|                      | Refuel Time | Begin  | End    | Refuel Time | Begin  | End    | Refuel Time | Begin  | End    | Refuel Time | Begin  | End    |                  |                |');
+disp('+----------------------+-------------+--------+--------+-------------+--------+--------+-------------+--------+--------+-------------+--------+--------+------------------+----------------+');
+
+for i = 1:numVehicles
+    p1 = '|             |        |        ';
+    p2 = '|             |        |        ';
+    p3 = '|             |        |        ';
+    p4 = '|             |        |        ';
+
+    waitingTime = startTimes(i) - arrivalTimes(i);
+    timeSpent = endTimes(i) - arrivalTimes(i);
+
+    % Assign values based on pump
+    switch assignedPump(i)
+        case 1
+            p1 = sprintf('| %11.2f | %6.2f | %6.2f ', serviceTimes(i), startTimes(i), endTimes(i));
+        case 2
+            p2 = sprintf('| %11.2f | %6.2f | %6.2f ', serviceTimes(i), startTimes(i), endTimes(i));
+        case 3
+            p3 = sprintf('| %11.2f | %6.2f | %6.2f ', serviceTimes(i), startTimes(i), endTimes(i));
+        case 4
+            p4 = sprintf('| %11.2f | %6.2f | %6.2f ', serviceTimes(i), startTimes(i), endTimes(i));
+    end
+
+    fprintf('| %20d %s%s%s%s| %16.2f | %14.2f |\n', ...
+        i, p1, p2, p3, p4, waitingTime, timeSpent);
 end
 
-fprintf('+------------+-----------+-----------+-----------+-----------+-----------+--------+--------+-------------------+---------+----------+-----------+-----------+-----------+\n');
+
+
+
+% Bottom border
+disp('--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------');
 
 %% ----------------- Averages ------------------------
 finalAverage(waitingTimes, serviceTimes);   % user-supplied helper
