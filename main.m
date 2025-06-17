@@ -71,7 +71,7 @@ fprintf('\nRunning main simulation with RNG type %d for %d vehicles...\n', ...
 fprintf('\nSimulating fuel pump operations...\n');
 
 %% Generate random numbers
-numberOfRandomNumber = numVehicles * 3;   % 3 sets of random numbers
+numberOfRandomNumber = numVehicles * 3;   % 3 sets of random numbers, first set interarrival time, second fuel types, third fuel times
 
 if     rngChoice == 1
     seed = lcg(rand(), numberOfRandomNumber);
@@ -85,9 +85,12 @@ end
 
 %% Generate inter-arrival times for each vehicle
 interArrivalTimes = zeros(1, numVehicles);
+rngInterArrival = zeros(1, numVehicles); 
 
 for i = 1:numVehicles
     val = seed(i);
+    rngInterArrival(i) = val;
+    
     for j = 1:length(lowerBound)
         if val >= lowerBound(j) && val <= upperBound(j)
             interArrivalTimes(i) = interTime(j);
@@ -98,10 +101,12 @@ end
 
 %% Generate fuel types for each vehicle
 fuelTypes = cell(1, numVehicles);
+rngFuelType = zeros(1, numVehicles); 
 
 for i = 1:numVehicles
     randNum = seed(numVehicles + i);  % second set
-
+    rngFuelType(i) = randNum;
+    
     for j = 1:length(ranges)
         bounds = sscanf(ranges{j}, '%d-%d');
         if randNum >= bounds(1) && randNum <= bounds(2)
@@ -224,14 +229,15 @@ Fuel = fuelTypes;
 
 
 % Main Table Header
-disp('+-----+----------------+---------------+-------------------+---------------------------+---------------------+----------------+--------+-------------------------+------------------+--------+----------+----------+');
-disp('| No  | Petrol         | Quantity (L)  | Total Price (RM)  | RNG Interarrival Time     | Interarrival Time   | Arrival Time   | Line   | RNG Refuel Time         | Refuel Time      | Pump   | Begin    | End      |');
-disp('+-----+----------------+---------------+-------------------+---------------------------+---------------------+----------------+--------+-------------------------+------------------+--------+----------+----------+');
+disp('+-----+----------------+----------+-------------+-----------------+------------------+-------------------+----------------+--------+------------------+----------------+--------+--------+--------+');
+disp('| No  | Petrol         | RNGFuel  | Quantity(L) | Total Price(RM) |       RNG        | Interarrival Time | Arrival Time   | Line   |       RNG        | Refuel Time    | Pump   | Begin  | End    |');
+disp('|     |                |          |             |                 |Interarrival Time |                   |                |        | Refuel Time      |                |        |        |        |');
+disp('+-----+----------------+----------+-------------+-----------------+------------------+-------------------+----------------+--------+------------------+----------------+--------+--------+--------+');
 
 for i = 1:numVehicles
     % Calculate quantity and price
     quantity = round(serviceTimes(i) * fuelRate / 60);
-    
+
     if strcmp(fuelTypes{i}, 'Primax95')
         pricePerLitre = r95Price;
     elseif strcmp(fuelTypes{i}, 'Primax97')
@@ -239,18 +245,17 @@ for i = 1:numVehicles
     else
         pricePerLitre = dieselPrice;
     end
-    
+
     totalPrice = quantity * pricePerLitre;
 
-    % Print aligned row
-    fprintf('| %-3d | %-14s | %13.2f | %17.2f | %25.2f | %19.2f | %14.2f | %-6d | %23.2f | %16.2f | %-6d | %8.2f | %8.2f |\n', ...
-        i, fuelTypes{i}, quantity, totalPrice, ...
-        0, interArrivalTimes(i), arrivalTimes(i), assignedLane(i), ...
-        0, serviceTimes(i), assignedPump(i), startTimes(i), endTimes(i));
+    % Print aligned row (RNGFuel is dummy 0 for now)
+    fprintf('| %-3d | %-14s | %8.2f | %11.2f | %15.2f | %16.2f | %17.2f | %14.2f | %-6d | %16.2f | %14.2f | %-6d | %6.2f | %6.2f |\n', ...
+        i, fuelTypes{i}, rngFuelType(i), quantity, totalPrice, ...
+        rngInterArrival(i), interArrivalTimes(i), arrivalTimes(i), assignedLane(i), ...
+        randRefuelNums(i), serviceTimes(i), assignedPump(i), startTimes(i), endTimes(i));
 end
-disp('+-----+----------------+---------------+-------------------+---------------------------+---------------------+----------------+--------+-------------------------+------------------+--------+----------+----------+');
 
-
+disp('+-----+----------------+----------+-------------+-----------------+------------------+-------------------+----------------+--------+------------------+----------------+--------+--------+--------+');
 
 % Pump-wise Time Table Header
 disp('+----------------------+-------------------------------+-------------------------------+-------------------------------+-------------------------------+------------------+----------------+');
