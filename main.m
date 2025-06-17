@@ -1,28 +1,29 @@
+%======================================================================
+%  Fuel-pump queueing simulator  –  FreeMat edition
+%======================================================================
+
 clc; clear;
 
 %% 1) Display Lookup Tables
 % Fuel-type probabilities
-[types,probs,cdfVals,ranges,prices] = fuelTypeProb;
+[types, probs, cdfVals, ranges, prices] = fuelTypeProb;
 
 % Refueling time distributions
 fuelTime;
 
-fuelRate = 60 %liters per minute
+fuelRate = 60;          % litres per minute
 
-%Fuels Price
-r95Price = 2.05 
-r97Price = 3.10
-diselPrice = 2.80
+% Fuels Price
+r95Price   = 2.05;
+r97Price   = 3.10;
+dieselPrice = 2.80;
 
-% Interarrival time distributions
-fprintf('Interarrival Time For Non Peak Hour \n')
+% Inter-arrival time distributions
+fprintf('Interarrival Time For Non-Peak Hour\n');
 interarrival(1.75);
-%[interTimeNonPeak, probNonPeak] = interarrival(1.75);
 
-fprintf('Interarrival Time For Peak Hour \n')
+fprintf('Interarrival Time For Peak Hour\n');
 interarrival(2);
-%[interTimePeak, probPeak] = interarrival(2.0);
-
 
 %% 2) RNG Selection
 fprintf('\nSelect RNG type:\n');
@@ -46,48 +47,47 @@ end
 numVehicles = input('Enter number of vehicles to simulate: ');
 fprintf('>> Simulating %d vehicles.\n', numVehicles);
 
-%% 4) Peak Hour or Non Peak Hour
-fprintf('Select Time Of Stimulation\n');
-fprintf(' 1 : Non Peak Hour\n');
-fprintf(' 2 : Peak Hour\n');
+%% 4) Peak Hour or Non-Peak Hour
+fprintf('Select Time Of Simulation\n');
+fprintf(' 1 : Non-Peak Hour\n');
+fprintf(' 2 : Peak  Hour\n');
 
-time = input('Choose [1-2]: ')
+time = input('Choose [1-2]: ');
 
 switch time
     case 1
-        fprintf('>> Stimulating Non Peak Hour\n');
+        fprintf('>> Simulating Non-Peak Hour\n');
         [interTime, probPercentage, cdfPercentage, lowerBound, upperBound] = interarrival(1.75);
     case 2
-        fprintf('>> Stimulating Peak Hour\n');
-        [interTime, probPercentage, cdfPercentage, lowerBound, upperBound]= interarrival(2.0);
+        fprintf('>> Simulating Peak Hour\n');
+        [interTime, probPercentage, cdfPercentage, lowerBound, upperBound] = interarrival(2.0);
     otherwise
         error('Invalid Time choice. Please select 1 or 2.');
 end
 
-%% 5) Placeholder for Main Simulation
-fprintf('\n[Placeholder] Running main simulation with RNG type %d for %d vehicles...\n', ...
+%% 5) Main Simulation banner
+fprintf('\nRunning main simulation with RNG type %d for %d vehicles...\n', ...
     rngChoice, numVehicles);
+fprintf('\nSimulating fuel pump operations...\n');
 
-    
-%% Generate random number for each of the vehicles
-numberOfRandomNumber = numVehicles * 3 %(3 set of random numbers)
+%% Generate random numbers
+numberOfRandomNumber = numVehicles * 3;   % 3 sets of random numbers
 
-if(rngChoice == 1)
-    seed = lcg(rand(),numberOfRandomNumber)
-elseif(rngChoice == 2)
-    seed = guv(rand(),numberOfRandomNumber)
-elseif(rngChoice == 3)
-    seed = expv(rand(),numberOfRandomNumber)
+if     rngChoice == 1
+    seed = lcg(rand(), numberOfRandomNumber);
+elseif rngChoice == 2
+    seed = guv(rand(), numberOfRandomNumber);
+elseif rngChoice == 3
+    seed = expv(rand(), numberOfRandomNumber);
 else
-    error('Invalid RNG Choice')
+    error('Invalid RNG choice');
 end
 
-%% Generate interarrival time for each vehicle
+%% Generate inter-arrival times for each vehicle
 interArrivalTimes = zeros(1, numVehicles);
 
 for i = 1:numVehicles
     val = seed(i);
-
     for j = 1:length(lowerBound)
         if val >= lowerBound(j) && val <= upperBound(j)
             interArrivalTimes(i) = interTime(j);
@@ -95,16 +95,13 @@ for i = 1:numVehicles
         end
     end
 end
-%disp(interArrivalTimes);
 
 %% Generate fuel types for each vehicle
 fuelTypes = cell(1, numVehicles);
 
 for i = 1:numVehicles
-    % Generate a random number between 0 and 99
-    randNum = seed(numVehicles+i);
+    randNum = seed(numVehicles + i);  % second set
 
-    % Determine fuel type using random number ranges
     for j = 1:length(ranges)
         bounds = sscanf(ranges{j}, '%d-%d');
         if randNum >= bounds(1) && randNum <= bounds(2)
@@ -114,11 +111,13 @@ for i = 1:numVehicles
     end
 end
 
-%% Generate fuel time for each vehicles ( car and lorry )
+%% Generate fuel times for each vehicle
 fuelTimes = zeros(1, numVehicles);
+randRefuelNums = zeros(1, numVehicles);
 
 for i = 1:numVehicles
-    randNum = seed(2 * numVehicles + i); % third set of random numbers
+    randNum = seed(2 * numVehicles + i);  % third set
+    randRefuelNums(i) = randNum;
 
     if strcmp(fuelTypes{i}, 'Dynamic Diesel')
         for j = 1:length(dsl_ranges)
@@ -139,62 +138,79 @@ for i = 1:numVehicles
     end
 end
 
-% Stimulate fuel pump
-fprintf('\n[Placeholder] Simulating fuel pump operations...\n');
+%% ---------------- Simulation Engine ----------------
+arrivalTimes  = cumsum(interArrivalTimes);
+startTimes    = zeros(1, numVehicles);
+endTimes      = zeros(1, numVehicles);
+waitingTimes  = zeros(1, numVehicles);
+serviceTimes  = fuelTimes;
+assignedLane  = zeros(1, numVehicles);
+assignedPump  = zeros(1, numVehicles);
 
-% TODO: Implement the simulation logic here.
-%       - Use rngChoice and numVehicles to generate inter-arrival and service times.
-%       - Display customer arrivals, departures, and events.
-%       - Show final tables of refueling times, petrol types, inter-arrival times.   
+pumpEnd       = zeros(1, 4);      % When each pump becomes free
+lane1_pumps   = [1 2];
+lane2_pumps   = [3 4];
 
-% Initialize Simulation Variables
-arrivalTimes = cumsum(interArrivalTimes);    
-startTimes = zeros(1, numVehicles);          
-endTimes = zeros(1, numVehicles);            
-waitingTimes = zeros(1, numVehicles);        
-serviceTimes = fuelTimes;                    
-assignedLane = zeros(1, numVehicles);        
-assignedPump = zeros(1, numVehicles);        
+% --- event logs for chronological printing ---
+eventTimes    = [];   % numeric times
+eventTypes    = [];   % 1 = arrival/begin-service, 2 = departure
+eventMessages = {};   % cell array of strings
 
-pumpEnd = zeros(1, 4);                        % Track when each pump is free
-lane1_pumps = [1, 2];                        
-lane2_pumps = [3, 4];                        
-
-% Run the simulation
 for i = 1:numVehicles
-    t_arrival = arrivalTimes(i);
+    t_arrival   = arrivalTimes(i);
 
-    lane1_next = min(pumpEnd(lane1_pumps));
-    lane2_next = min(pumpEnd(lane2_pumps));
+    % Choose lane (shorter queue / earlier release)
+    lane1_next  = min(pumpEnd(lane1_pumps));
+    lane2_next  = min(pumpEnd(lane2_pumps));
 
     if lane1_next <= lane2_next
         assignedLane(i) = 1;
-        temp = pumpEnd(lane1_pumps);
-        [minimum, idx] = min(temp);
-        pump = lane1_pumps(idx);
+        temp           = pumpEnd(lane1_pumps);
+        [minimum, idx] = min(temp);          % FreeMat requires both outputs
+        pump           = lane1_pumps(idx);
     else
         assignedLane(i) = 2;
-        temp = pumpEnd(lane2_pumps);
+        temp           = pumpEnd(lane2_pumps);
         [minimum, idx] = min(temp);
-        pump = lane2_pumps(idx);
+        pump           = lane2_pumps(idx);
     end
 
     assignedPump(i) = pump;
-    start_time = max(t_arrival, pumpEnd(pump));
-    end_time = start_time + serviceTimes(i);
-    startTimes(i) = start_time;
-    endTimes(i) = end_time;
+    start_time      = max(t_arrival, pumpEnd(pump));
+    end_time        = start_time + serviceTimes(i);
+    startTimes(i)   = start_time;
+    endTimes(i)     = end_time;
     waitingTimes(i) = start_time - t_arrival;
     pumpEnd(pump) = end_time;
     fuel = fuelTypes{i};
 
-    
+    % Log arrival/begin-service event
+    msg1 = sprintf('Vehicle %2d arrived at minute %.1f and began refueling with %s at Pump Island %d.', ...
+                   i, t_arrival, fuel, pump);
+    eventTimes    = [eventTimes, t_arrival];
+    eventTypes    = [eventTypes, 1];
+    eventMessages = [eventMessages, msg1];
 
+    % Log departure event
+    msg2 = sprintf('Vehicle %2d finished refueling and departed at minute %.1f.', ...
+                   i, end_time);
+    eventTimes    = [eventTimes, end_time];
+    eventTypes    = [eventTypes, 2];
+    eventMessages = [eventMessages, msg2];
 end
 
+%% --------- Chronological console output ------------
+% arrivals first if simultaneous, courtesy of small epsilon
+timeKey = eventTimes + eventTypes * 1e-4;      % arrivals slightly earlier
+[dummy, ord] = sort(timeKey);
 
+fprintf('\n');   % spacing
+for k = 1:length(ord)
+    fprintf('%s\n', eventMessages{ord(k)});
+end
+fprintf('\n');
 
-% Convert arrays to column format
+%% ----------------- Summary table -------------------
 VehicleID = (1:numVehicles)';
 Arrival = arrivalTimes';
 Start = startTimes';
@@ -273,11 +289,7 @@ end
 % Bottom border
 disp('--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------');
 
+%% ----------------- Averages ------------------------
+finalAverage(waitingTimes, serviceTimes);   % user-supplied helper
 
-
-
-% Show average wait and service times
-finalAverage(waitingTimes, serviceTimes);  % This function should be defined elsewhere
-
-
-fprintf('Simulation complete. (Placeholder)\n');
+fprintf('Simulation complete.\n');
