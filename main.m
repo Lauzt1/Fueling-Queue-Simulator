@@ -237,7 +237,7 @@ for i = 1:numVehicles
     elseif strcmp(fuelTypes{i}, 'Primax97')
         pricePerLitre = r97Price;
     else
-        pricePerLitre = diselPrice;
+        pricePerLitre = dieselPrice;
     end
     
     totalPrice = quantity * pricePerLitre;
