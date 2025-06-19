@@ -11,7 +11,7 @@ clc; clear;
 % Refueling time distributions
 fuelTime;
 
-fuelRate = 60;          % litres per minute
+fuelRate = 10;          % litres per minute
 
 % Fuels Price
 r95Price   = 2.05;
@@ -20,10 +20,10 @@ dieselPrice = 2.80;
 
 % Inter-arrival time distributions
 fprintf('Interarrival Time For Non-Peak Hour\n');
-interarrival(1.75);
+interarrivalNonPeak();
 
 fprintf('Interarrival Time For Peak Hour\n');
-interarrival(2);
+interarrivalPeak();
 
 %% 2) RNG Selection
 fprintf('\nSelect RNG type:\n');
@@ -57,10 +57,10 @@ time = input('Choose [1-2]: ');
 switch time
     case 1
         fprintf('>> Simulating Non-Peak Hour\n');
-        [interTime, probPercentage, cdfPercentage, lowerBound, upperBound] = interarrival(1.75);
+        [interTime, probPercentage, cdfPercentage, lowerBound, upperBound] = interarrivalNonPeak();
     case 2
         fprintf('>> Simulating Peak Hour\n');
-        [interTime, probPercentage, cdfPercentage, lowerBound, upperBound] = interarrival(2.0);
+        [interTime, probPercentage, cdfPercentage, lowerBound, upperBound] = interarrivalPeak();
     otherwise
         error('Invalid Time choice. Please select 1 or 2.');
 end
@@ -236,7 +236,7 @@ disp('+-----+----------------+----------+-------------+-----------------+-------
 
 for i = 1:numVehicles
     % Calculate quantity and price
-    quantity = round(serviceTimes(i) * fuelRate / 60);
+    quantity = round(serviceTimes(i) * fuelRate);
 
     if strcmp(fuelTypes{i}, 'Primax95')
         pricePerLitre = r95Price;

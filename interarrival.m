@@ -5,6 +5,7 @@ function [times, prob_percent, cdf_percent, lower_bound, upper_bound] = interarr
     prob = zeros(n, 1);
 
     % Calculate raw probabilities using exponential CDF differences
+    % The probability of each times is calculated by e^(lambda(value1))- e^(lambda(value2)) or ((1-e^(lambda(value2)) - (1- e^(lambda(value1)))
     for i = 1:n
         if i == 1
             prob(i) = exp(-lambda * 0) - exp(-lambda * times(i));
@@ -24,6 +25,7 @@ function [times, prob_percent, cdf_percent, lower_bound, upper_bound] = interarr
 
     % For the 3rd minute range just do:
     % 100 - sum of all previous bins
+    % assume all probability for time >3 as 3 because the probability of >3 is very low
     prob_percent(end) = 100 - sum(prob_percent(1:end-1));
 
     % Compute cumulative percentages (CDF)
